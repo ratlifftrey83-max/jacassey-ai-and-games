@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jacasey AI</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#080b12;
+  color:white;
+}
+header{
+  height:70px;
+  background:#111827;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 25px;
+}
+.logo{
+  font-size:26px;
+  font-weight:bold;
+}
+.owner{
+  color:#60a5fa;
+  font-weight:bold;
+}
+.layout{
+  display:flex;
+  min-height:calc(100vh - 70px);
+}
+nav{
+  width:220px;
+  background:#0f172a;
+  padding:20px 12px;
+}
+nav button{
+  width:100%;
+  padding:14px;
+  margin-bottom:8px;
+  border:0;
+  border-radius:10px;
+  background:#1f2937;
+  color:white;
+  cursor:pointer;
+  text-align:left;
+  font-size:15px;
+}
+nav button:hover{
+  background:#2563eb;
+}
+main{
+  flex:1;
+  padding:30px;
+}
+.page{display:none}
+.page.active{display:block}
+h1{font-size:30px}
+.card{
+  background:#111827;
+  padding:20px;
+  border-radius:15px;
+  margin:15px 0;
+}
+textarea,input{
+  width:100%;
+  padding:14px;
+  background:#1f2937;
+  color:white;
+  border:1px solid #374151;
+  border-radius:10px;
+  margin:8px 0;
+}
+button.action{
+  background:#2563eb;
+  color:white;
+  border:0;
+  padding:12px 20px;
+  border-radius:9px;
+  cursor:pointer;
+}
+.games{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:15px;
+}
+.game{
+  background:#111827;
+  padding:20px;
+  border-radius:15px;
+}
+#board{
+  display:grid;
+  grid-template-columns:repeat(3,80px);
+  gap:5px;
+  margin-top:15px;
+}
+.square{
+  width:80px;
+  height:80px;
+  font-size:30px;
+  background:#1f2937;
+  color:white;
+  border:0;
+  border-radius:8px;
+  cursor:pointer;
+}
+#snakeCanvas{
+  background:#020617;
+  border-radius:10px;
+  max-width:100%;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">JACASEY AI</div>
+  <div class="owner">OWNER TREY</div>
+</header>
+
+<div class="layout">
+
+<nav>
+  <button onclick="showPage('home')">🏠 Home</button>
+  <button onclick="showPage('ai')">🤖 Jacasey AI</button>
+  <button onclick="showPage('homework')">📚 Homework</button>
+  <button onclick="showPage('pictures')">🖼️ Pictures</button>
+  <button onclick="showPage('games')">🎮 Games</button>
+</nav>
+
+<main>
+
+<section id="home" class="page active">
+<h1>Welcome to Jacasey AI</h1>
+<p>Your personal AI-style dashboard.</p>
+
+<div class="card">
+<h2>What can I do?</h2>
+<p>🤖 Ask questions</p>
+<p>📚 Get homework help</p>
+<p>🖼️ Create picture prompts</p>
+<p>🎮 Play mini games</p>
+</div>
+</section>
+
+<section id="ai" class="page">
+<h1>🤖 Jacasey AI</h1>
+
+<div class="card">
+<div id="chat">
+<p><b>Jacasey:</b> Hey Trey! What do you need help with?</p>
+</div>
+
+<textarea id="question" placeholder="Type something..."></textarea>
+<button class="action" onclick="askAI()">Send</button>
+</div>
+</section>
+
+<section id="homework" class="page">
+<h1>📚 Homework Helper</h1>
+
+<div class="card">
+<p>Enter your question:</p>
+<textarea id="homeworkInput" placeholder="Example: What is 12 × 8?"></textarea>
+<button class="action" onclick="homework()">Help Me</button>
+<p id="homeworkAnswer"></p>
+</div>
+</section>
+
+<section id="pictures" class="page">
+<h1>🖼️ Picture Generator</h1>
+
+<div class="card">
+<p>Describe the picture you want:</p>
+<textarea id="pictureInput"
+placeholder="Example: A futuristic blue gaming setup"></textarea>
+
+<button class="action" onclick="picturePrompt()">Create Prompt</button>
+
+<p id="pictureAnswer"></p>
+</div>
+</section>
+
+<section id="games" class="page">
+<h1>🎮 Mini Games</h1>
+
+<div class="games">
+
+<div class="game">
+<h2>❌ Tic-Tac-Toe</h2>
+<p id="tttStatus">Your turn</p>
+<div id="board"></div>
+<button class="action" onclick="resetTTT()">Reset</button>
+</div>
+
+<div class="game">
+<h2>⚡ Reaction Game</h2>
+<p id="reactionText">Press start!</p>
+<button class="action" onclick="startReaction()">Start</button>
+</div>
+
+<div class="game">
+<h2>🐍 Snake</h2>
+<p>Use your arrow keys.</p>
+<canvas id="snakeCanvas" width="300" height="300"></canvas>
+<br>
+<button class="action" onclick="startSnake()">Start Snake</button>
+</div>
+
+</div>
+</section>
+
+</main>
+</div>
+
+<script>
+
+function showPage(page){
+ document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+ document.getElementById(page).classList.add("active");
+}
+
+function askAI(){
+ let q=document.getElementById("question").value.trim();
+ if(!q)return;
+
+ let chat=document.getElementById("chat");
+
+ chat.innerHTML += "<p><b>You:</b> "+escapeHTML(q)+"</p>";
+
+ let answer="I can help you break that down step by step. Try giving me more details about the question.";
+
+ if(q.toLowerCase().includes("hello") ||
+    q.toLowerCase().includes("hi")){
+   answer="Hey Trey! 👋 What are we working on?";
+ }
+
+ chat.innerHTML += "<p><b>Jacasey:</b> "+answer+"</p>";
+ document.getElementById("question").value="";
+}
+
+function homework(){
+ let q=document.getElementById("homeworkInput").value.trim();
+ let answer=document.getElementById("homeworkAnswer");
+
+ if(!q){
+   answer.innerText="Enter a homework question first.";
+   return;
+ }
+
+ answer.innerText=
+ "Let's work through it step by step. Your question is: "+q;
+}
+
+function picturePrompt(){
+ let q=document.getElementById("pictureInput").value.trim();
+
+ document.getElementById("pictureAnswer").innerText=
+ q ? "Picture prompt: "+q :
+ "Enter an image idea first.";
+}
+
+function escapeHTML(text){
+ return text.replace(/[&<>"']/g,function(m){
+   return ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#039;"
+   })[m];
+ });
+}
+
+
+/* TIC TAC TOE */
+
+let tttBoard=["","","","","","","","",""];
+let gameOver=false;
+
+function drawTTT(){
+ let board=document.getElementById("board");
+ board.innerHTML="";
+
+ tttBoard.forEach((value,i)=>{
+   let b=document.createElement("button");
+   b.className="square";
+   b.innerText=value;
+   b.onclick=()=>tttMove(i);
+   board.appendChild(b);
+ });
+}
+
+function tttMove(i){
+
+ if(tttBoard[i] || gameOver)return;
+
+ tttBoard[i]="X";
+ drawTTT();
+
+ if(checkWinner("X")){
+   document.getElementById("tttStatus").innerText="You win! 🎉";
+   gameOver=true;
+   return;
+ }
+
+ if(tttBoard.every(x=>x)){
+   document.getElementById("tttStatus").innerText="Draw!";
+   gameOver=true;
+   return;
+ }
+
+ let empty=tttBoard
+   .map((x,i)=>x===""?i:null)
+   .filter(x=>x!==null);
+
+ let cpu=empty[Math.floor(Math.random()*empty.length)];
+
+ tttBoard[cpu]="O";
+ drawTTT();
+
+ if(checkWinner("O")){
+   document.getElementById("tttStatus").innerText="Computer wins!";
+   gameOver=true;
+ }
+}
+
+function checkWinner(player){
+ let wins=[
+ [0,1,2],[3,4,5],[6,7,8],
+ [0,3,6],[1,4,7],[2,5,8],
+ [0,4,8],[2,4,6]
+ ];
+
+ return wins.some(w=>
+   w.every(i=>tttBoard[i]===player)
+ );
+}
+
+function resetTTT(){
+ tttBoard=["","","","","","","","",""];
+ gameOver=false;
+ document.getElementById("tttStatus").innerText="Your turn";
+ drawTTT();
+}
+
+drawTTT();
+
+
+/* REACTION GAME */
+
+let reactionTimer;
+
+function startReaction(){
+
+ let text=document.getElementById("reactionText");
+
+ text.innerText="WAIT...";
+
+ let delay=Math.random()*3000+1000;
+
+ reactionTimer=setTimeout(()=>{
+   let start=Date.now();
+
+   text.innerHTML=
+   '<button class="action" onclick="reactionClick('+start+')">CLICK!</button>';
+
+ },delay);
+}
+
+function reactionClick(start){
+ let time=Date.now()-start;
+
+ document.getElementById("reactionText").innerText=
+ "Your reaction time: "+time+" ms ⚡";
+}
+
+
+/* SNAKE */
+
+let canvas=document.getElementById("snakeCanvas");
+let ctx=canvas.getContext("2d");
+
+let snake=[];
+let food={x:100,y:100};
+let dx=20;
+let dy=0;
+let snakeRunning=false;
+
+document.addEventListener("keydown",function(e){
+
+ if(e.key==="ArrowUp" && dy===0){
+   dx=0; dy=-20;
+ }
+
+ if(e.key==="ArrowDown" && dy===0){
+   dx=0; dy=20;
+ }
+
+ if(e.key==="ArrowLeft" && dx===0){
+   dx=-20; dy=0;
+ }
+
+ if(e.key==="ArrowRight" && dx===0){
+   dx=20; dy=0;
+ }
+
+});
+
+function startSnake(){
+
+ snake=[
+  {x:140,y:140},
+  {x:120,y:140},
+  {x:100,y:140}
+ ];
+
+ dx=20;
+ dy=0;
+ snakeRunning=true;
+
+ placeFood();
+
+ snakeLoop();
+}
+
+function placeFood(){
+
+ food={
+  x:Math.floor(Math.random()*15)*20,
+  y:Math.floor(Math.random()*15)*20
+ };
+
+}
+
+function snakeLoop(){
+
+ if(!snakeRunning)return;
+
+ let head={
+  x:snake[0].x+dx,
+  y:snake[0].y+dy
+ };
+
+ if(
+   head.x<0 ||
+   head.x>=300 ||
+   head.y<0 ||
+   head.y>=300 ||
+   snake.some(s=>s.x===head.x && s.y===head.y)
+ ){
+   snakeRunning=false;
+   alert("Game over!");
+   return;
+ }
+
+ snake.unshift(head);
+
+ if(head.x===food.x && head.y===food.y){
+   placeFood();
+ }else{
+   snake.pop();
+ }
+
+ ctx.fillStyle="#020617";
+ ctx.fillRect(0,0,300,300);
+
+ ctx.fillStyle="#60a5fa";
+ ctx.fillRect(food.x,food.y,18,18);
+
+ ctx.fillStyle="#a7f3d0";
+
+ snake.forEach(s=>{
+   ctx.fillRect(s.x,s.y,18,18);
+ });
+
+ setTimeout(snakeLoop,100);
+}
+
+</script>
+
+</body>
+</html>
